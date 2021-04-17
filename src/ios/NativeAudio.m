@@ -169,9 +169,12 @@ NSString* INFO_VOLUME_CHANGED = @"(NATIVE AUDIO) Volume changed.";
     [self.commandDelegate runInBackground:^{
         if (existingReference == nil) {
             NSString* basePath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"www"];
-            NSString* path = [NSString stringWithFormat:@"%@/%@", basePath, assetPath];
+            NSString* path = [NSString stringWithFormat:@"%@", assetPath];
+            NSString* pathFromWWW = [NSString stringWithFormat:@"%@/%@", basePath, assetPath];            
 
             if ([[NSFileManager defaultManager] fileExistsAtPath : path]) {
+                NSURL *pathURL = [NSURL fileURLWithPath : path];
+                
                 NativeAudioAsset* asset = [[NativeAudioAsset alloc] initWithPath:path
                                                                       withVoices:voices
                                                                       withVolume:volume
@@ -182,6 +185,19 @@ NSString* INFO_VOLUME_CHANGED = @"(NATIVE AUDIO) Volume changed.";
                 NSString *RESULT = [NSString stringWithFormat:@"%@ (%@)", INFO_ASSET_LOADED, audioID];
                 [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString: RESULT] callbackId:callbackId];
 
+             } else if ([[NSFileManager defaultManager] fileExistsAtPath : pathFromWWW]) {
+                NSURL *pathURL = [NSURL fileURLWithPath : pathFromWWW];
+
+                NativeAudioAsset* asset = [[NativeAudioAsset alloc] initWithPath:pathFromWWW
+                                                                      withVoices:voices
+                                                                      withVolume:volume
+                                                                   withFadeDelay:delay];
+
+                audioMapping[audioID] = asset;
+
+                NSString *RESULT = [NSString stringWithFormat:@"%@ (%@)", INFO_ASSET_LOADED, audioID];
+                [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString: RESULT] callbackId:callbackId];
+                
             } else {
                 NSString *RESULT = [NSString stringWithFormat:@"%@ (%@)", ERROR_ASSETPATH_INCORRECT, assetPath];
                 [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: RESULT] callbackId:callbackId];
